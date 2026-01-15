@@ -23,6 +23,7 @@ export default function Home() {
 
     const [step, setStep] = useState<"upload" | "preferences" | "result">("upload");
     const [error, setError] = useState<string | null>(null);
+    const [loadingType, setLoadingType] = useState<"food-analysis" | "itinerary">("food-analysis");
 
     const handleAnalyzeFood = async () => {
         if (uploadedImages.length === 0) {
@@ -31,6 +32,7 @@ export default function Home() {
         }
 
         setError(null);
+        setLoadingType("food-analysis");
         setIsGenerating(true);
 
         try {
@@ -58,6 +60,7 @@ export default function Home() {
         if (!foodAnalysis) return;
 
         setError(null);
+        setLoadingType("itinerary");
         setIsGenerating(true);
 
         try {
@@ -87,7 +90,7 @@ export default function Home() {
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-amber-50/50 to-white">
-            {isGenerating && <LoadingOverlay />}
+            {isGenerating && <LoadingOverlay type={loadingType} />}
 
             {/* Header */}
             <header className="py-4 md:py-6 px-4 border-b border-amber-100">
