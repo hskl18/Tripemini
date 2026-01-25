@@ -1,148 +1,110 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Utensils, MapPin, Calendar, Sparkles, Search, Route, CheckCircle, ScanEye, ChefHat, Palette, Star, Clock, DollarSign, Plane } from "lucide-react";
+import { Sparkles, ScanEye, ChefHat, Palette, MapPin, Utensils, Calendar } from "lucide-react";
 
-// Steps for food analysis (shorter)
+// Steps for food analysis
 const foodAnalysisSteps = [
-    { icon: ScanEye, text: "Scanning your food photos...", duration: 2000 },
-    { icon: ChefHat, text: "Identifying cuisines...", duration: 2500 },
-    { icon: Palette, text: "Detecting flavor profiles...", duration: 2000 },
-    { icon: Sparkles, text: "Finalizing preferences...", duration: 1500 },
+    { icon: ScanEye, text: "Scanning photos" },
+    { icon: ChefHat, text: "Identifying cuisines" },
+    { icon: Palette, text: "Detecting flavors" },
+    { icon: Sparkles, text: "Finalizing" },
 ];
 
-// Steps for itinerary generation (longer, more detailed)
+// Steps for itinerary generation (simplified)
 const itinerarySteps = [
-    { icon: Utensils, text: "Matching restaurants to your taste...", duration: 3000 },
-    { icon: Star, text: "Finding top-rated spots...", duration: 3500 },
-    { icon: MapPin, text: "Discovering nearby attractions...", duration: 3000 },
-    { icon: Route, text: "Optimizing daily routes...", duration: 3500 },
-    { icon: Clock, text: "Scheduling activities...", duration: 3000 },
-    { icon: DollarSign, text: "Calculating budget estimates...", duration: 3000 },
-    { icon: Plane, text: "Planning transportation...", duration: 3000 },
-    { icon: Calendar, text: "Building your itinerary...", duration: 4000 },
-    { icon: Search, text: "Adding local recommendations...", duration: 3500 },
-    { icon: Sparkles, text: "Adding final touches...", duration: 5000 },
+    { icon: Utensils, text: "Finding restaurants" },
+    { icon: MapPin, text: "Discovering places" },
+    { icon: Calendar, text: "Building itinerary" },
+    { icon: Sparkles, text: "Finalizing" },
 ];
 
 interface LoadingOverlayProps {
     type: "food-analysis" | "itinerary";
 }
 
-export function LoadingOverlay({ type }: LoadingOverlayProps) {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-
+function LoadingContent({ type }: LoadingOverlayProps) {
     const steps = type === "food-analysis" ? foodAnalysisSteps : itinerarySteps;
-    const title = type === "food-analysis" ? "Analyzing Your Taste" : "Creating Your Perfect Trip";
+    const title = type === "food-analysis" ? "Analyzing Your Taste" : "Creating Your Trip";
+    const accentColor = type === "food-analysis" ? "emerald" : "orange";
+
+    const [currentStep, setCurrentStep] = useState(0);
 
     useEffect(() => {
-        setCurrentStep(0);
-        setCompletedSteps([]);
-    }, [type]);
-
-    useEffect(() => {
+        const duration = type === "food-analysis" ? 2000 : 8000;
         const interval = setInterval(() => {
-            setCurrentStep((prev) => {
-                const next = prev + 1;
-                if (next < steps.length) {
-                    setCompletedSteps((completed) => [...completed, prev]);
-                    return next;
-                }
-                return prev;
-            });
-        }, steps[currentStep]?.duration || 3000);
+            setCurrentStep((prev) => (prev + 1) % steps.length);
+        }, duration);
 
         return () => clearInterval(interval);
-    }, [currentStep, steps]);
+    }, [steps.length, type]);
 
     const CurrentIcon = steps[currentStep]?.icon || Sparkles;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl md:rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-center mb-6">
-                    <div className="relative">
-                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center ${type === "food-analysis" ? "bg-green-100" : "bg-amber-100"
-                            }`}>
-                            <CurrentIcon className={`w-8 h-8 md:w-10 md:h-10 ${type === "food-analysis" ? "text-green-500" : "text-amber-500"
-                                }`} />
-                        </div>
-                        <div className={`absolute inset-0 rounded-full border-4 border-transparent animate-spin ${type === "food-analysis" ? "border-t-green-400" : "border-t-amber-400"
-                            }`}></div>
+        <div className="bg-white/95 backdrop-blur rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+            {/* Animated icon */}
+            <div className="flex justify-center mb-6">
+                <div className="relative">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center ${accentColor === "emerald" ? "bg-emerald-50" : "bg-orange-50"
+                        }`}>
+                        <CurrentIcon className={`w-10 h-10 ${accentColor === "emerald" ? "text-emerald-500" : "text-orange-500"
+                            } transition-all duration-300`} />
                     </div>
+                    {/* Spinning ring */}
+                    <svg className="absolute inset-0 w-20 h-20 animate-spin" style={{ animationDuration: '3s' }}>
+                        <circle
+                            cx="40"
+                            cy="40"
+                            r="38"
+                            fill="none"
+                            stroke={accentColor === "emerald" ? "#10b981" : "#f97316"}
+                            strokeWidth="3"
+                            strokeDasharray="60 180"
+                            strokeLinecap="round"
+                        />
+                    </svg>
                 </div>
-
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2 text-center">
-                    {title}
-                </h3>
-
-                <p className={`font-medium text-center mb-6 text-sm md:text-base animate-pulse ${type === "food-analysis" ? "text-green-600" : "text-amber-600"
-                    }`}>
-                    {steps[currentStep]?.text || "Almost there..."}
-                </p>
-
-                <div className="space-y-2">
-                    {steps.map((step, index) => {
-                        const StepIcon = step.icon;
-                        const isCompleted = completedSteps.includes(index);
-                        const isCurrent = index === currentStep;
-
-                        return (
-                            <div
-                                key={index}
-                                className={`flex items-center gap-3 p-2 rounded-lg transition-all ${isCurrent ? (type === "food-analysis" ? "bg-green-50" : "bg-amber-50") : ""
-                                    }`}
-                            >
-                                <div
-                                    className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCompleted
-                                            ? "bg-green-100"
-                                            : isCurrent
-                                                ? (type === "food-analysis" ? "bg-green-100" : "bg-amber-100")
-                                                : "bg-gray-100"
-                                        }`}
-                                >
-                                    {isCompleted ? (
-                                        <CheckCircle className="w-4 h-4 text-green-500" />
-                                    ) : (
-                                        <StepIcon
-                                            className={`w-3 h-3 ${isCurrent
-                                                    ? (type === "food-analysis" ? "text-green-500" : "text-amber-500")
-                                                    : "text-gray-400"
-                                                }`}
-                                        />
-                                    )}
-                                </div>
-                                <span
-                                    className={`text-xs md:text-sm ${isCompleted
-                                            ? "text-green-600"
-                                            : isCurrent
-                                                ? (type === "food-analysis" ? "text-green-600 font-medium" : "text-amber-600 font-medium")
-                                                : "text-gray-400"
-                                        }`}
-                                >
-                                    {step.text.replace("...", "")}
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <div className="mt-6 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                        className={`h-full transition-all duration-500 ease-out ${type === "food-analysis"
-                                ? "bg-gradient-to-r from-green-400 to-emerald-400"
-                                : "bg-gradient-to-r from-amber-400 to-orange-400"
-                            }`}
-                        style={{
-                            width: `${((currentStep + 1) / steps.length) * 100}%`,
-                        }}
-                    />
-                </div>
-                <p className="text-xs text-gray-500 text-center mt-2">
-                    Step {currentStep + 1} of {steps.length}
-                </p>
             </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+                {title}
+            </h3>
+
+            {/* Current step text */}
+            <p className={`text-center mb-6 ${accentColor === "emerald" ? "text-emerald-600" : "text-orange-600"
+                }`}>
+                {steps[currentStep]?.text}...
+            </p>
+
+            {/* Step indicators */}
+            <div className="flex justify-center gap-2 mb-4">
+                {steps.map((_, index) => (
+                    <div
+                        key={index}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${index === currentStep
+                            ? `w-8 ${accentColor === "emerald" ? "bg-emerald-500" : "bg-orange-500"}`
+                            : index < currentStep
+                                ? `w-4 ${accentColor === "emerald" ? "bg-emerald-300" : "bg-orange-300"}`
+                                : "w-4 bg-gray-200"
+                            }`}
+                    />
+                ))}
+            </div>
+
+            {/* Subtle hint */}
+            <p className="text-xs text-gray-400 text-center">
+                This may take a moment
+            </p>
+        </div>
+    );
+}
+
+export function LoadingOverlay({ type }: LoadingOverlayProps) {
+    return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <LoadingContent key={type} type={type} />
         </div>
     );
 }

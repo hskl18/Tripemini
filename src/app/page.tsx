@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Utensils, Sparkles, Map } from "lucide-react";
+import { Utensils, Sparkles, Map, Camera, MapPin, CalendarCheck, ArrowRight } from "lucide-react";
 import { ImageUpload } from "@/components/image-upload";
 import { TripForm } from "@/components/trip-form";
 import { ItineraryView } from "@/components/itinerary-view";
@@ -89,14 +89,14 @@ export default function Home() {
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-b from-amber-50/50 to-white">
+        <main className="min-h-screen bg-white">
             {isGenerating && <LoadingOverlay type={loadingType} />}
 
             {/* Header */}
-            <header className="py-4 md:py-6 px-4 border-b border-amber-100">
+            <header className="py-4 md:py-6 px-4 border-b border-gray-100">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 flex items-center justify-center">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-orange-500 flex items-center justify-center">
                             <Utensils className="w-4 h-4 md:w-6 md:h-6 text-white" />
                         </div>
                         <span className="text-xl md:text-2xl font-bold text-gray-900">Tripemini</span>
@@ -113,7 +113,7 @@ export default function Home() {
                 <section className="py-8 md:py-16 px-4 text-center">
                     <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
                         Plan Your Trip Around Your{" "}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">
+                        <span className="text-orange-500">
                             Taste
                         </span>
                     </h1>
@@ -135,17 +135,44 @@ export default function Home() {
                 {step === "upload" && (
                     <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-8">
                         <div className="flex items-center gap-2 mb-4 md:mb-6">
-                            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-amber-500" />
+                            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
                             <h2 className="text-xl md:text-2xl font-semibold">Step 1: Share Your Taste</h2>
                         </div>
                         <ImageUpload />
                         <button
                             onClick={handleAnalyzeFood}
                             disabled={uploadedImages.length === 0 || isGenerating}
-                            className="mt-4 md:mt-6 w-full py-3 md:py-4 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-semibold rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                            className="mt-4 md:mt-6 w-full py-3 md:py-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                         >
                             {isGenerating ? "Analyzing your taste..." : "Analyze My Food Preferences"}
                         </button>
+
+                        {/* How it works */}
+                        <div className="mt-8 pt-6 border-t border-gray-100">
+                            <p className="text-xs text-gray-400 text-center mb-4">HOW IT WORKS</p>
+                            <div className="flex items-center justify-center gap-2 md:gap-4">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-50 flex items-center justify-center">
+                                        <Camera className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
+                                    </div>
+                                    <span className="text-xs text-gray-500">Upload food</span>
+                                </div>
+                                <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-50 flex items-center justify-center">
+                                        <MapPin className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
+                                    </div>
+                                    <span className="text-xs text-gray-500">Set destination</span>
+                                </div>
+                                <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-50 flex items-center justify-center">
+                                        <CalendarCheck className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
+                                    </div>
+                                    <span className="text-xs text-gray-500">Get your trip</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -170,7 +197,7 @@ export default function Home() {
                         </div>
 
                         <div className="flex items-center gap-2 mb-4 md:mb-6">
-                            <Map className="w-5 h-5 md:w-6 md:h-6 text-amber-500" />
+                            <Map className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
                             <h2 className="text-xl md:text-2xl font-semibold">Step 2: Plan Your Trip</h2>
                         </div>
                         <TripForm onSubmit={handleGenerateItinerary} />
@@ -187,7 +214,7 @@ export default function Home() {
                             >
                                 Start Over
                             </button>
-                            <button className="px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 text-sm md:text-base">
+                            <button className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm md:text-base">
                                 Share Itinerary
                             </button>
                         </div>

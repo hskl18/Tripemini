@@ -14,16 +14,30 @@ function getGenAI(): GoogleGenerativeAI {
     return genAI;
 }
 
+// Use Gemini 3 Flash Preview for fast itinerary generation
 export function getGeminiModel(): GenerativeModel {
     if (!_geminiModel) {
-        _geminiModel = getGenAI().getGenerativeModel({ model: "gemini-3-pro-preview" });
+        _geminiModel = getGenAI().getGenerativeModel({
+            model: "gemini-3-flash-preview",
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 8192,
+            }
+        });
     }
     return _geminiModel;
 }
 
+// Use Gemini 3 Flash Preview for food analysis
 export function getGeminiVisionModel(): GenerativeModel {
     if (!_geminiVisionModel) {
-        _geminiVisionModel = getGenAI().getGenerativeModel({ model: "gemini-3-pro-preview" });
+        _geminiVisionModel = getGenAI().getGenerativeModel({
+            model: "gemini-3-flash-preview",
+            generationConfig: {
+                temperature: 0.5,
+                maxOutputTokens: 1024,
+            }
+        });
     }
     return _geminiVisionModel;
 }

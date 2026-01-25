@@ -25,7 +25,7 @@ export function TripForm({ onSubmit }: TripFormProps) {
         onSubmit(formData);
     };
 
-    const inputClass = "w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent text-sm md:text-base";
+    const inputClass = "w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm md:text-base";
     const labelClass = "flex items-center gap-2 text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2";
 
     const getEstimatedTime = (days: number) => {
@@ -116,13 +116,13 @@ export function TripForm({ onSubmit }: TripFormProps) {
 
             {/* Time estimate warning for longer trips */}
             {estimatedTime && (
-                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                        <p className="text-amber-800">
+                        <p className="text-orange-800">
                             <span className="font-medium">{formData.tripLength}-day trips</span> take longer to generate.
                         </p>
-                        <p className="text-amber-600">
+                        <p className="text-orange-600">
                             Estimated time: {estimatedTime}
                         </p>
                     </div>
@@ -176,7 +176,7 @@ export function TripForm({ onSubmit }: TripFormProps) {
             <button
                 type="submit"
                 disabled={isGenerating}
-                className="w-full py-3 md:py-4 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-semibold rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                className="w-full py-3 md:py-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
                 {isGenerating ? "Creating your perfect trip..." : "Generate My Itinerary"}
             </button>

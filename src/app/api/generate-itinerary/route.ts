@@ -17,113 +17,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const budgetRanges = {
-      budget: { meal: "10-25", hotel: "50-100", activity: "0-20" },
-      moderate: { meal: "25-60", hotel: "100-200", activity: "20-50" },
-      luxury: { meal: "60-150", hotel: "200-500", activity: "50-150" },
+    const budgetMultiplier = {
+      budget: 0.6,
+      moderate: 1,
+      luxury: 2,
     };
-    const budgetRange = budgetRanges[preferences.budget || "moderate"];
+    const multiplier = budgetMultiplier[preferences.budget || "moderate"];
 
-    const prompt = `You are a travel planning expert. Create a detailed ${preferences.tripLength}-day itinerary for ${preferences.destination}.
+    // Simplified, faster prompt
+    const prompt = `Create a ${preferences.tripLength}-day travel itinerary for ${preferences.destination}.
 
-USER'S FOOD PREFERENCES (extracted from their food photos):
-- Cuisines they love: ${foodAnalysis.cuisine.join(", ")}
-- Flavor profile: ${foodAnalysis.flavorProfile.join(", ")}
-- Dining style: ${foodAnalysis.diningStyle.join(", ")}
-- Favorite ingredients: ${foodAnalysis.ingredients.join(", ")}
+USER TASTE: ${foodAnalysis.cuisine.join(", ")} cuisine, ${foodAnalysis.flavorProfile.slice(0, 3).join(", ")} flavors, ${foodAnalysis.diningStyle[0] || "casual"} dining.
 
-TRIP DETAILS:
-- Destination: ${preferences.destination}
-- Starting from: ${preferences.startingLocation}
-- Trip length: ${preferences.tripLength} days
-- Start date: ${preferences.startDate}
-- Budget level: ${preferences.budget || "moderate"}
-- Pace: ${preferences.pace || "moderate"}
-${preferences.dietaryRestrictions?.length ? `- Dietary restrictions: ${preferences.dietaryRestrictions.join(", ")}` : ""}
+TRIP: From ${preferences.startingLocation}, starting ${preferences.startDate}, ${preferences.pace || "moderate"} pace, ${preferences.budget || "moderate"} budget.
 
-BUDGET GUIDELINES (USD):
-- Meals: $${budgetRange.meal} per person
-- Hotels: $${budgetRange.hotel} per night
-- Activities: $${budgetRange.activity} per activity
+For each day include 3 meals + 2-3 attractions. Each item needs: time, title, description (1 sentence), duration, estimatedCost (USD), whySelected (1 sentence linking to their food taste).
 
-Generate a complete itinerary with:
-1. Restaurants that match their taste preferences (breakfast, lunch, dinner)
-2. Attractions and activities near meal locations
-3. Realistic timing and travel between locations
-4. Explanation for WHY each place was selected based on their food preferences
-5. IMPORTANT: Include estimated costs in USD for EVERY item
-6. IMPORTANT: Include imageUrl for restaurants and attractions - use real Unsplash URLs like "https://images.unsplash.com/photo-[id]?w=400" with relevant food/travel photos
-7. Calculate daily totals and overall trip budget breakdown
-
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON:
 {
-  "id": "unique-id",
+  "id": "${Date.now()}",
   "destination": "${preferences.destination}",
   "startDate": "${preferences.startDate}",
-  "endDate": "calculated end date",
-  "days": [
-    {
-      "day": 1,
-      "date": "YYYY-MM-DD",
-      "summary": "Brief day overview",
-      "dailyTotal": 150,
-      "items": [
-        {
-          "id": "item-1",
-          "time": "09:00",
-          "type": "meal",
-          "title": "Restaurant Name",
-          "description": "What to try here",
-          "duration": "1 hour",
-          "whySelected": "Why this matches their taste",
-          "estimatedCost": 35,
-          "imageUrl": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400",
-          "location": {
-            "name": "Restaurant Name",
-            "cuisine": "Cuisine type",
-            "rating": 4.5,
-            "priceLevel": "$$",
-            "address": "Full address",
-            "coordinates": { "lat": 0.0, "lng": 0.0 },
-            "estimatedCost": 35,
-            "imageUrl": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400"
-          }
-        },
-        {
-          "id": "item-2",
-          "time": "11:00",
-          "type": "attraction",
-          "title": "Attraction Name",
-          "description": "What to see/do here",
-          "duration": "2 hours",
-          "whySelected": "Why this is recommended",
-          "estimatedCost": 20,
-          "imageUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400",
-          "location": {
-            "name": "Attraction Name",
-            "type": "temple",
-            "address": "Full address",
-            "coordinates": { "lat": 0.0, "lng": 0.0 },
-            "estimatedCost": 20,
-            "imageUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400"
-          }
-        }
-      ]
-    }
-  ],
+  "endDate": "YYYY-MM-DD",
+  "days": [{
+    "day": 1,
+    "date": "YYYY-MM-DD",
+    "summary": "Day theme",
+    "dailyTotal": 0,
+    "items": [{
+      "id": "d1-1",
+      "time": "09:00",
+      "type": "meal|attraction|transport",
+      "title": "Name",
+      "description": "Brief description",
+      "duration": "1 hour",
+      "whySelected": "Matches your love of X cuisine",
+      "estimatedCost": ${Math.round(30 * multiplier)},
+      "imageUrl": "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400",
+      "location": {
+        "name": "Name",
+        "address": "Address",
+        "coordinates": {"lat": 0, "lng": 0}
+      }
+    }]
+  }],
   "budgetBreakdown": {
-    "flights": 800,
-    "hotels": 500,
-    "food": 300,
-    "activities": 150,
-    "transport": 100,
-    "total": 1850
+    "flights": ${Math.round(800 * multiplier)},
+    "hotels": ${Math.round(preferences.tripLength * 120 * multiplier)},
+    "food": ${Math.round(preferences.tripLength * 80 * multiplier)},
+    "activities": ${Math.round(preferences.tripLength * 40 * multiplier)},
+    "transport": ${Math.round(preferences.tripLength * 20 * multiplier)},
+    "total": 0
   },
   "foodPreferences": ${JSON.stringify(foodAnalysis)},
   "createdAt": "${new Date().toISOString()}"
 }
 
-Use realistic Unsplash photo IDs for the destination. For Japan use Japanese food/temple/city photos, for Italy use Italian scenes, etc.`;
+Use real Unsplash photo URLs relevant to ${preferences.destination}. Calculate dailyTotal and budgetBreakdown.total correctly.`;
 
     const result = await getGeminiModel().generateContent(prompt);
     const response = result.response.text();
