@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { MapPin, Clock, Utensils, Camera, Info, DollarSign, Plane, Hotel, Car } from "lucide-react";
 import type { Itinerary, DayPlan, ItineraryItem, BudgetBreakdown } from "@/types";
 
@@ -64,12 +65,15 @@ function ItemCard({ item }: { item: ItineraryItem }) {
             <div className="flex gap-4 p-4">
                 {/* Image */}
                 <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden">
-                    <img
+                    <Image
                         src={item.imageUrl || item.location?.imageUrl || fallbackImage}
                         alt={item.title}
+                        width={96}
+                        height={96}
+                        unoptimized
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                            (e.target as HTMLImageElement).src = fallbackImage;
+                            e.currentTarget.src = fallbackImage;
                         }}
                     />
                 </div>

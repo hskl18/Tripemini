@@ -44,13 +44,23 @@ export default function Home() {
                 body: formData,
             });
 
-            if (!response.ok) throw new Error("Failed to analyze food");
+            if (!response.ok) {
+                const payload = await response.json().catch(() => ({}));
+                const retryAfter = response.headers.get("retry-after");
+                throw new Error(
+                    `${payload.error || "Failed to analyze food"}${retryAfter ? ` Try again in ${retryAfter} seconds.` : ""}`
+                );
+            }
 
             const analysis = await response.json();
             setFoodAnalysis(analysis);
             setStep("preferences");
-        } catch {
-            setError("Failed to analyze your food photos. Please try again.");
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to analyze your food photos. Please try again."
+            );
         } finally {
             setIsGenerating(false);
         }
@@ -70,13 +80,23 @@ export default function Home() {
                 body: JSON.stringify({ foodAnalysis, preferences }),
             });
 
-            if (!response.ok) throw new Error("Failed to generate itinerary");
+            if (!response.ok) {
+                const payload = await response.json().catch(() => ({}));
+                const retryAfter = response.headers.get("retry-after");
+                throw new Error(
+                    `${payload.error || "Failed to generate itinerary"}${retryAfter ? ` Try again in ${retryAfter} seconds.` : ""}`
+                );
+            }
 
             const generatedItinerary = await response.json();
             setItinerary(generatedItinerary);
             setStep("result");
-        } catch {
-            setError("Failed to generate your itinerary. Please try again.");
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to generate your itinerary. Please try again."
+            );
         } finally {
             setIsGenerating(false);
         }
@@ -101,10 +121,6 @@ export default function Home() {
                         </div>
                         <span className="text-xl md:text-2xl font-bold text-gray-900">Tripemini</span>
                     </div>
-                    <nav className="hidden sm:flex items-center gap-6">
-                        <button className="text-gray-600 hover:text-gray-900">Gallery</button>
-                        <button className="text-gray-600 hover:text-gray-900">About</button>
-                    </nav>
                 </div>
             </header>
 
@@ -118,8 +134,8 @@ export default function Home() {
                         </span>
                     </h1>
                     <p className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto">
-                        Upload a photo of food you love, and Tripemini plans your entire trip
-                        around your taste. Powered by Gemini AI.
+                        Upload food photos, and Tripemini drafts a travel itinerary around
+                        your taste. Powered by Gemini.
                     </p>
                 </section>
             )}
@@ -207,15 +223,12 @@ export default function Home() {
                 {step === "result" && itinerary && (
                     <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-8">
                         <ItineraryView itinerary={itinerary} />
-                        <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+                        <div className="mt-6 md:mt-8 flex justify-center">
                             <button
                                 onClick={handleStartOver}
                                 className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm md:text-base"
                             >
                                 Start Over
-                            </button>
-                            <button className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm md:text-base">
-                                Share Itinerary
                             </button>
                         </div>
                     </div>
