@@ -6,31 +6,9 @@ export interface FoodAnalysis {
     confidence: number;
 }
 
-export interface Restaurant {
-    id: string;
+export interface ItineraryLocation {
     name: string;
-    cuisine: string;
-    rating: number;
-    priceLevel: string;
     address: string;
-    coordinates: { lat: number; lng: number };
-    openingHours?: string;
-    whyRecommended: string;
-    imageUrl?: string;
-    estimatedCost: number;
-}
-
-export interface Attraction {
-    id: string;
-    name: string;
-    type: string;
-    description: string;
-    duration: string;
-    address: string;
-    coordinates: { lat: number; lng: number };
-    whyRecommended: string;
-    imageUrl?: string;
-    estimatedCost: number;
 }
 
 export interface ItineraryItem {
@@ -39,10 +17,9 @@ export interface ItineraryItem {
     type: "meal" | "attraction" | "transport" | "hotel";
     title: string;
     description: string;
-    location?: Restaurant | Attraction;
+    location?: ItineraryLocation;
     duration: string;
     whySelected: string;
-    imageUrl?: string;
     estimatedCost: number;
 }
 

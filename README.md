@@ -1,18 +1,19 @@
 # Tripemini
 
-Tripemini is a Gemini 3 Hackathon MVP that turns food photos into a taste profile and a structured travel itinerary.
-It demonstrates a bounded multimodal workflow rather than a booking engine or a source of verified travel facts.
+Tripemini is a Gemini hackathon MVP that turns food photos into an inferred taste profile and an illustrative travel itinerary draft.
+It demonstrates a bounded multimodal workflow rather than a booking engine, route optimizer, or source of verified travel facts.
 
 [Live demo](https://tripemini.vercel.app) | [Gemini 3 Hackathon](https://gemini3.devpost.com/)
 
-## Workflow
+## Shipped workflow
 
 1. Upload food photos that represent your preferences.
 2. Enter a destination, starting location, date, trip length, pace, and budget style.
-3. Review a generated itinerary with meals, attractions, explanations, and estimated costs.
+3. Review a generated draft containing meals, attractions, explanations, and illustrative cost estimates.
 
-Gemini output can be incomplete or inaccurate.
-Restaurant details, addresses, availability, prices, and travel estimates must be verified independently before use.
+The current MVP does not use live restaurant search, maps, booking inventory, route optimization, or verified pricing data.
+Generated restaurant names, addresses, availability, prices, travel times, and schedules may be incomplete or inaccurate.
+Verify every real-world detail independently before relying on an itinerary.
 
 ## Request boundaries
 
@@ -20,14 +21,25 @@ Restaurant details, addresses, availability, prices, and travel estimates must b
 - Each image is limited to 4 MiB, and the complete multipart request is limited to 12 MiB.
 - Itinerary requests are limited to 32 KiB and trips from 1 to 14 days.
 - Destination, location, date, preference arrays, enums, and confidence values are validated before model execution.
+- Declared image MIME types are checked against JPEG, PNG, or WebP file signatures before upload content reaches the model.
+- Gemini responses use JSON schemas and are validated again at runtime before the application returns them.
+- User-provided trip fields are serialized inside an explicit untrusted-data boundary in the itinerary prompt.
+- Model calls have a 30-second deadline and invalid model responses fail closed.
+- IDs, dates, item totals, and the total budget are computed by the server instead of trusted from model output.
 - One process permits at most four concurrent model calls.
 - One client may start at most ten model calls per minute.
 - Rate-limit state tracks at most 10,000 clients per process.
 - Limit responses use `429` and include `Retry-After`.
 
 The rate and concurrency gates are process-local safeguards.
-A multi-instance public deployment should also use durable platform-level rate limiting, spend alerts, and abuse monitoring.
-The current MVP has no user authentication.
+A multi-instance public deployment also needs durable platform-level rate limiting, spend alerts, and abuse monitoring.
+The current MVP has no user authentication, saved itineraries, sharing, booking, or account system.
+
+## Image handling and privacy
+
+Uploaded images are sent to the server-side model integration for analysis.
+The application does not intentionally persist uploaded images or generated itineraries, but the configured model provider processes request content under its own terms.
+Do not upload sensitive photos or images containing private personal information.
 
 ## Local development
 
@@ -53,17 +65,18 @@ pnpm build
 ```
 
 The deterministic suite does not call Gemini.
-It covers streamed and declared payload limits, image count, size and MIME rules, trip input validation, rate limiting, bounded client tracking, and model concurrency.
+It covers streamed and declared payload limits, image count, size and signature rules, trip input validation, prompt-data isolation, structured model output, canonical server fields, timeouts, rate limiting, bounded client tracking, and model concurrency.
 
 ## Architecture
 
 | Path | Responsibility |
 | --- | --- |
-| `src/app/api/analyze-food` | Validates bounded multipart uploads and requests a structured taste profile. |
-| `src/app/api/generate-itinerary` | Validates trip inputs and requests a structured itinerary. |
+| `src/app/api/analyze-food` | Validates bounded multipart uploads and requests a structured taste-profile draft. |
+| `src/app/api/generate-itinerary` | Validates trip inputs and requests a structured itinerary draft. |
 | `src/lib/api-guards.ts` | Implements request-size, validation, rate, concurrency, and client-tracking boundaries. |
-| `src/lib/gemini.ts` | Lazily creates the configured Gemini model clients. |
-| `src/store/trip-store.ts` | Holds browser-side MVP workflow state. |
+| `src/lib/model-contracts.ts` | Defines model-output schemas and fail-closed runtime parsing. |
+| `src/lib/gemini.ts` | Configures the server-side Gemini 3.5 Flash client and structured output. |
+| `src/store/trip-store.ts` | Holds temporary browser-side MVP workflow state. |
 
 ## License
 

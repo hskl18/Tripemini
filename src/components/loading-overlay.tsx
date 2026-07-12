@@ -1,22 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Sparkles, ScanEye, ChefHat, Palette, MapPin, Utensils, Calendar } from "lucide-react";
+import { Sparkles, ScanEye, Calendar } from "lucide-react";
 
-// Steps for food analysis
+// The provider does not expose reliable stage-level progress.
 const foodAnalysisSteps = [
-    { icon: ScanEye, text: "Scanning photos" },
-    { icon: ChefHat, text: "Identifying cuisines" },
-    { icon: Palette, text: "Detecting flavors" },
-    { icon: Sparkles, text: "Finalizing" },
+    { icon: ScanEye, text: "Generating an illustrative taste profile" },
 ];
 
-// Steps for itinerary generation (simplified)
+// Keep the loading state honest until measured progress is available.
 const itinerarySteps = [
-    { icon: Utensils, text: "Finding restaurants" },
-    { icon: MapPin, text: "Discovering places" },
-    { icon: Calendar, text: "Building itinerary" },
-    { icon: Sparkles, text: "Finalizing" },
+    { icon: Calendar, text: "Generating an illustrative itinerary draft" },
 ];
 
 interface LoadingOverlayProps {
@@ -28,18 +21,7 @@ function LoadingContent({ type }: LoadingOverlayProps) {
     const title = type === "food-analysis" ? "Analyzing Your Taste" : "Creating Your Trip";
     const accentColor = type === "food-analysis" ? "emerald" : "orange";
 
-    const [currentStep, setCurrentStep] = useState(0);
-
-    useEffect(() => {
-        const duration = type === "food-analysis" ? 2000 : 8000;
-        const interval = setInterval(() => {
-            setCurrentStep((prev) => (prev + 1) % steps.length);
-        }, duration);
-
-        return () => clearInterval(interval);
-    }, [steps.length, type]);
-
-    const CurrentIcon = steps[currentStep]?.icon || Sparkles;
+    const CurrentIcon = steps[0]?.icon || Sparkles;
 
     return (
         <div className="bg-white/95 backdrop-blur rounded-2xl p-8 max-w-sm w-full shadow-2xl">
@@ -75,22 +57,14 @@ function LoadingContent({ type }: LoadingOverlayProps) {
             {/* Current step text */}
             <p className={`text-center mb-6 ${accentColor === "emerald" ? "text-emerald-600" : "text-orange-600"
                 }`}>
-                {steps[currentStep]?.text}...
+                {steps[0]?.text}...
             </p>
 
             {/* Step indicators */}
             <div className="flex justify-center gap-2 mb-4">
-                {steps.map((_, index) => (
-                    <div
-                        key={index}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${index === currentStep
-                            ? `w-8 ${accentColor === "emerald" ? "bg-emerald-500" : "bg-orange-500"}`
-                            : index < currentStep
-                                ? `w-4 ${accentColor === "emerald" ? "bg-emerald-300" : "bg-orange-300"}`
-                                : "w-4 bg-gray-200"
-                            }`}
-                    />
-                ))}
+                <div
+                    className={`h-1.5 w-8 rounded-full ${accentColor === "emerald" ? "bg-emerald-500" : "bg-orange-500"}`}
+                />
             </div>
 
             {/* Subtle hint */}
