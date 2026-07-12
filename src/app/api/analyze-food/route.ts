@@ -1,30 +1,84 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGeminiVisionModel } from "@/lib/gemini";
+import {
+    MAX_IMAGE_REQUEST_BYTES,
+    MAX_IMAGE_COUNT,
+    MAX_IMAGE_BYTES,
+    ALLOWED_IMAGE_TYPES,
+    hasContentType,
+    PayloadTooLargeError,
+    readBoundedRequestBody,
+    rejectDeclaredPayloadTooLarge,
+    modelRequestGate,
+    type ModelRequestGate,
+} from "@/lib/api-guards";
 
-export async function POST(request: NextRequest) {
+type AnalyzeFoodHandlerOptions = {
+    generate?: (parts: Array<string | { inlineData: { data: string; mimeType: string } }>) => Promise<string>;
+    gate?: ModelRequestGate;
+};
+
+async function generateWithGemini(
+    parts: Array<string | { inlineData: { data: string; mimeType: string } }>
+): Promise<string> {
+    const result = await getGeminiVisionModel().generateContent(parts);
+    return result.response.text();
+}
+
+export function createAnalyzeFoodHandler(
+    options: AnalyzeFoodHandlerOptions = {}
+) {
+    const generate = options.generate ?? generateWithGemini;
+    const gate = options.gate ?? modelRequestGate;
+
+    return async function handleAnalyzeFood(request: NextRequest) {
+    const tooLarge = rejectDeclaredPayloadTooLarge(
+        request,
+        MAX_IMAGE_REQUEST_BYTES
+    );
+    if (tooLarge) return tooLarge;
+    if (!hasContentType(request, "multipart/form-data")) {
+        return NextResponse.json(
+            { error: "Request must use multipart/form-data" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const formData = await request.formData();
+        const body = await readBoundedRequestBody(
+            request,
+            MAX_IMAGE_REQUEST_BYTES
+        );
+        const bodyBuffer = new ArrayBuffer(body.byteLength);
+        new Uint8Array(bodyBuffer).set(body);
+        const boundedRequest = new Request(request.url, {
+            method: request.method,
+            headers: request.headers,
+            body: bodyBuffer,
+        });
+        const formData = await boundedRequest.formData();
         const images = formData.getAll("images") as File[];
 
-        if (!images.length) {
+        if (images.length < 1 || images.length > MAX_IMAGE_COUNT) {
             return NextResponse.json(
-                { error: "No images provided" },
+                { error: "Upload between one and four images" },
                 { status: 400 }
             );
         }
 
-        const imageParts = await Promise.all(
-            images.map(async (image) => {
-                const bytes = await image.arrayBuffer();
-                const base64 = Buffer.from(bytes).toString("base64");
-                return {
-                    inlineData: {
-                        data: base64,
-                        mimeType: image.type,
-                    },
-                };
-            })
-        );
+        if (images.some((image) => !ALLOWED_IMAGE_TYPES.has(image.type))) {
+            return NextResponse.json(
+                { error: "Images must be JPEG, PNG, or WebP" },
+                { status: 400 }
+            );
+        }
+
+        if (images.some((image) => image.size > MAX_IMAGE_BYTES)) {
+            return NextResponse.json(
+                { error: "Each image must be 4 MiB or smaller" },
+                { status: 413 }
+            );
+        }
 
         const prompt = `Analyze these food images and extract the user's taste preferences.
 
@@ -39,12 +93,26 @@ Return a JSON object with:
 
 Be specific and detailed. Only return valid JSON, no markdown.`;
 
-        const result = await getGeminiVisionModel().generateContent([
-            prompt,
-            ...imageParts,
-        ]);
+        const decision = gate.tryStart(request);
+        if (!decision.ok) return decision.response;
 
-        const response = result.response.text();
+        let response: string;
+        try {
+            const imageParts = await Promise.all(
+                images.map(async (image) => {
+                    const bytes = await image.arrayBuffer();
+                    return {
+                        inlineData: {
+                            data: Buffer.from(bytes).toString("base64"),
+                            mimeType: image.type,
+                        },
+                    };
+                })
+            );
+            response = await generate([prompt, ...imageParts]);
+        } finally {
+            decision.release();
+        }
 
         // Clean up markdown code blocks if present
         const cleanedResponse = response
@@ -56,10 +124,19 @@ Be specific and detailed. Only return valid JSON, no markdown.`;
 
         return NextResponse.json(analysis);
     } catch (error) {
+        if (error instanceof PayloadTooLargeError) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: 413 }
+            );
+        }
         console.error("Food analysis error:", error);
         return NextResponse.json(
             { error: "Failed to analyze food images" },
             { status: 500 }
         );
     }
+    };
 }
+
+export const POST = createAnalyzeFoodHandler();

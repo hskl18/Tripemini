@@ -1,21 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGeminiModel } from "@/lib/gemini";
-import type { FoodAnalysis, TripPreferences } from "@/types";
+import {
+  MAX_ITINERARY_REQUEST_BYTES,
+  hasContentType,
+  PayloadTooLargeError,
+  readBoundedRequestBody,
+  rejectDeclaredPayloadTooLarge,
+  modelRequestGate,
+  type ModelRequestGate,
+  validateTripGenerationInput,
+} from "@/lib/api-guards";
 
-export async function POST(request: NextRequest) {
+type GenerateItineraryHandlerOptions = {
+  generate?: (prompt: string) => Promise<string>;
+  gate?: ModelRequestGate;
+};
+
+async function generateWithGemini(prompt: string): Promise<string> {
+  const result = await getGeminiModel().generateContent(prompt);
+  return result.response.text();
+}
+
+export function createGenerateItineraryHandler(
+  options: GenerateItineraryHandlerOptions = {}
+) {
+  const generate = options.generate ?? generateWithGemini;
+  const gate = options.gate ?? modelRequestGate;
+
+  return async function handleGenerateItinerary(request: NextRequest) {
+  const tooLarge = rejectDeclaredPayloadTooLarge(
+    request,
+    MAX_ITINERARY_REQUEST_BYTES
+  );
+  if (tooLarge) return tooLarge;
+  if (!hasContentType(request, "application/json")) {
+    return NextResponse.json(
+      { error: "Request must use application/json" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const body = await request.json();
-    const { foodAnalysis, preferences } = body as {
-      foodAnalysis: FoodAnalysis;
-      preferences: TripPreferences;
-    };
-
-    if (!foodAnalysis || !preferences) {
+    const rawBody = await readBoundedRequestBody(
+      request,
+      MAX_ITINERARY_REQUEST_BYTES
+    );
+    let body: unknown;
+    try {
+      body = JSON.parse(new TextDecoder().decode(rawBody));
+    } catch {
       return NextResponse.json(
-        { error: "Missing food analysis or preferences" },
+        { error: "Request body must be valid JSON" },
         { status: 400 }
       );
     }
+    const validation = validateTripGenerationInput(body);
+    if (!validation.ok) {
+      return NextResponse.json(
+        { error: "Trip request failed validation" },
+        { status: 400 }
+      );
+    }
+    const { foodAnalysis, preferences } = validation.value;
 
     const budgetMultiplier = {
       budget: 0.6,
@@ -75,8 +121,15 @@ Return ONLY valid JSON:
 
 Use real Unsplash photo URLs relevant to ${preferences.destination}. Calculate dailyTotal and budgetBreakdown.total correctly.`;
 
-    const result = await getGeminiModel().generateContent(prompt);
-    const response = result.response.text();
+    const decision = gate.tryStart(request);
+    if (!decision.ok) return decision.response;
+
+    let response: string;
+    try {
+      response = await generate(prompt);
+    } finally {
+      decision.release();
+    }
 
     const cleanedResponse = response
       .replace(/```json\n?/g, "")
@@ -87,10 +140,19 @@ Use real Unsplash photo URLs relevant to ${preferences.destination}. Calculate d
 
     return NextResponse.json(itinerary);
   } catch (error) {
+    if (error instanceof PayloadTooLargeError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 413 }
+      );
+    }
     console.error("Itinerary generation error:", error);
     return NextResponse.json(
       { error: "Failed to generate itinerary" },
       { status: 500 }
     );
   }
+  };
 }
+
+export const POST = createGenerateItineraryHandler();

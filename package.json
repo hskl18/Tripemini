@@ -2,11 +2,17 @@
   "name": "tripemini-app",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.17.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -14,7 +20,7 @@
     "@vercel/analytics": "^1.6.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.563.0",
-    "next": "16.1.4",
+    "next": "16.2.10",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "zustand": "^5.0.10"
@@ -26,8 +32,9 @@
     "@types/react-dom": "^19.2.3",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9.39.2",
-    "eslint-config-next": "16.1.4",
+    "eslint-config-next": "16.2.10",
     "tailwindcss": "^4.1.18",
+    "tsx": "4.19.4",
     "typescript": "^5.9.3"
   }
 }
