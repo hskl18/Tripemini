@@ -1,104 +1,89 @@
-# Market Analysis: Tripemini
+# Tripemini Product Rationale
 
-## The Problem
+This document describes product hypotheses for the hackathon MVP.
+It does not present validated market size, demand, or business-model claims.
 
-Traditional travel planning tools approach trip planning through:
-- **Destination-first**: "Where do you want to go?"
-- **Budget-first**: "How much do you want to spend?"
-- **Date-first**: "When are you traveling?"
+## User problem hypothesis
 
-But for many travelers, especially food enthusiasts, **taste is the primary driver** of travel decisions. People travel specifically to eat authentic ramen in Tokyo, pizza in Naples, or tacos in Mexico City.
+Some travelers choose destinations and daily activities around food preferences.
+Existing planning workflows often require users to translate those preferences into search terms before building an itinerary.
 
-**Current solutions fail to:**
-- Use food preferences as a primary planning input
-- Connect dining choices to nearby attractions
-- Create cohesive daily routes optimized around meals
-- Explain *why* specific restaurants match user preferences
+Tripemini tests a narrower question: can food photos make the first step of itinerary drafting faster and more expressive?
 
-## Market Opportunity
+## Candidate users
 
-### Target Users
+The current concept may be useful to:
 
-1. **Food Tourists** - Travel primarily for culinary experiences
-2. **Instagram Foodies** - Already have food photos that express their taste
-3. **Busy Professionals** - Want personalized trips without hours of research
-4. **First-time Visitors** - Need curated recommendations, not overwhelming lists
+- Travelers who organize trips around meals and local cuisine.
+- People who find images easier to provide than detailed preference forms.
+- Hackathon users exploring multimodal planning workflows.
+- Travelers who want a starting draft and understand that every detail needs verification.
 
-### Market Size
+These groups are hypotheses until supported by user research and product analytics.
 
-- Global travel market: **$1.9 trillion** (2024)
-- Food tourism segment: **$1.1 trillion** (growing 9% annually)
-- AI travel planning tools: **$850M** (projected $3.5B by 2028)
+## Current differentiation
 
-## Competitive Landscape
+The shipped MVP combines three elements:
 
-| Competitor | Approach | Limitation |
-|------------|----------|------------|
-| **TripAdvisor** | Reviews & rankings | No personalization, overwhelming options |
-| **Google Travel** | Search-based | Requires knowing what you want |
-| **Wanderlog** | Manual itinerary builder | Time-consuming, no AI assistance |
-| **Roam Around** | AI chat-based | Text input only, no visual understanding |
-| **Layla AI** | Conversational planning | No food-first approach |
+- Food-photo input.
+- A structured taste-profile draft.
+- A multi-day itinerary draft organized around that profile.
 
-### Tripemini's Differentiation
+The application does not currently compete as a booking platform, map product, verified restaurant database, or production travel assistant.
 
-✅ **Multimodal input** - Start with images, not text  
-✅ **Food-first planning** - Meals drive the itinerary  
-✅ **Explainable AI** - Every recommendation includes "why"  
-✅ **End-to-end** - Complete itinerary, not just suggestions  
-✅ **Budget-aware** - Cost estimates for entire trip  
+## Validation questions
 
-## Business Model (Future)
+The next product study should answer:
 
-### Freemium
-- **Free**: 3 itineraries/month, basic features
-- **Pro ($9.99/mo)**: Unlimited itineraries, save & share, group planning
+1. Do users prefer photo-based taste input to a short text questionnaire?
+2. Does the inferred taste profile feel accurate enough to edit and continue?
+3. Do users finish the itinerary workflow after uploading images?
+4. Which generated details require the most correction?
+5. Are users willing to verify places, prices, and schedules before use?
+6. Does the workflow provide value without live place data?
 
-### Affiliate Revenue
-- Restaurant booking commissions (OpenTable, Resy)
-- Hotel booking commissions (Booking.com, Hotels.com)
-- Activity booking commissions (Viator, GetYourGuide)
+## Evidence to collect
 
-### B2B Opportunities
-- White-label for travel agencies
-- API for travel booking platforms
-- Tourism board partnerships
+Any future product claim should be supported by documented evidence such as:
 
-## Go-to-Market Strategy
+- Completion rate from upload to itinerary draft.
+- User-rated taste-profile relevance.
+- Structured-output success and retry rates.
+- Median and tail latency by trip length and image count.
+- Token usage and estimated model cost per completed workflow.
+- Percentage of generated places that can be matched to a verified data source.
+- Qualitative interviews describing where the draft saved or added work.
 
-### Phase 1: MVP (Current)
-- Hackathon launch
-- Collect user feedback
-- Validate core value proposition
+Analytics should avoid collecting uploaded photos, raw prompts, precise trip locations, or other sensitive content unless users explicitly consent.
 
-### Phase 2: Beta
-- Add user accounts & saved itineraries
-- Integrate real restaurant data (Google Places API)
-- Launch on Product Hunt
+## Risks
 
-### Phase 3: Growth
-- Mobile app (React Native)
-- Affiliate integrations
-- Content marketing (food travel guides)
+### Fabricated places or addresses
 
-## Key Metrics to Track
+The UI and README describe the result as an unverified draft.
+A verified place-data provider with visible sources is required before making stronger claims.
 
-- **Conversion**: Photo upload → completed itinerary
-- **Engagement**: Time spent reviewing itinerary
-- **Retention**: Return users generating new trips
-- **NPS**: Would users recommend to friends?
+### Incorrect prices or schedules
 
-## Risks & Mitigations
+The MVP presents generated values as illustrative estimates.
+Current provider data and timestamps are required before treating them as travel facts.
 
-| Risk | Mitigation |
-|------|------------|
-| AI hallucinations (fake restaurants) | Integrate Google Places API for verification |
-| Slow generation time | Use faster models, implement streaming |
-| Limited food photo quality | Provide example photos, image guidelines |
-| Competition from Google | Focus on niche (food-first), superior UX |
+### Model cost abuse
 
-## Summary
+The routes have bounded process-local request and concurrency gates.
+A public multi-instance deployment still needs durable rate limits, global budgets, and spend alerts.
 
-Tripemini addresses an underserved niche in travel planning by using multimodal AI to transform food preferences into complete travel itineraries. The food tourism market is large and growing, and no current solution offers a true food-first, image-based planning experience.
+### Slow or failed generation
 
-**Key insight**: People already express their food preferences through photos (Instagram, food blogs). Tripemini turns those existing signals into actionable travel plans.
+The current UI surfaces errors and leaves inputs available for retry, while the server applies a 30-second model deadline.
+Measured latency distributions and clearer recovery states remain future work.
+
+### Sensitive image content
+
+The application does not intentionally persist uploaded images.
+Metadata stripping and clearer provider-processing disclosure would reduce privacy risk further.
+
+## Future business exploration
+
+Accounts, saved trips, booking links, affiliate integrations, and business APIs remain possible directions.
+None should be described as an active feature or revenue stream until the core workflow is validated and the underlying place data is trustworthy.

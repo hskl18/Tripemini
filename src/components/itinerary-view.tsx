@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { MapPin, Clock, Utensils, Camera, Info, DollarSign, Plane, Hotel, Car } from "lucide-react";
 import type { Itinerary, DayPlan, ItineraryItem, BudgetBreakdown } from "@/types";
 
@@ -56,26 +55,13 @@ function ItemCard({ item }: { item: ItineraryItem }) {
         }
     };
 
-    const fallbackImage = item.type === "meal"
-        ? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
-        : "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400";
-
     return (
         <div className="bg-white rounded-lg border border-gray-100 hover:border-gray-200 transition-all overflow-hidden">
             <div className="flex gap-4 p-4">
-                {/* Image */}
-                <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden">
-                    <Image
-                        src={item.imageUrl || item.location?.imageUrl || fallbackImage}
-                        alt={item.title}
-                        width={96}
-                        height={96}
-                        unoptimized
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                            e.currentTarget.src = fallbackImage;
-                        }}
-                    />
+                <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center">
+                    <span className="rounded-full bg-white p-3 shadow-sm" aria-hidden="true">
+                        {getIcon()}
+                    </span>
                 </div>
 
                 {/* Content */}
@@ -167,6 +153,18 @@ function DayCard({ day }: { day: DayPlan }) {
 export function ItineraryView({ itinerary }: ItineraryViewProps) {
     return (
         <div>
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left" role="note">
+                <div className="flex items-start gap-3">
+                    <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+                    <div>
+                        <p className="font-semibold text-amber-900">Illustrative, unverified draft</p>
+                        <p className="mt-1 text-sm text-amber-800">
+                            Verify every place, address, price, schedule, availability, and travel estimate before using this itinerary.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Header */}
             <div className="text-center mb-6 md:mb-8">
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900">

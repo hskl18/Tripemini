@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
     title: "Tripemini - Plan Your Trip Around Your Taste",
-    description: "Upload a photo of food you love, Tripemini plans your entire trip around your taste. Powered by Gemini AI.",
+    description: "Turn food photos into an inferred taste profile and an illustrative travel itinerary draft. Verify places, prices, and timing before use.",
     icons: {
-        icon: "/favicon.svg",
-        apple: "/favicon.svg",
+        icon: "/icon.svg",
+        apple: "/icon.svg",
     },
 };
 

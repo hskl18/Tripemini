@@ -1,79 +1,66 @@
-# Tripemini
+# Tripemini: Hackathon Concept and Shipped Scope
 
-> Upload a photo of food you love, Tripemini plans your entire trip around your taste.
+This document records the original product idea and distinguishes it from the functionality that is currently implemented.
 
 ## Inspiration
 
-Most travel planning tools start with destinations, budgets, or schedules. But for many people, trips actually start with taste. Food is often the strongest signal of personal preference, yet it is rarely used as a primary input for planning an entire trip.
+Most travel planners begin with a destination, budget, or schedule.
+Tripemini explores whether food photos can provide a more natural starting point for an itinerary draft.
 
-We wanted to explore a different entry point to travel planning: **What if a single photo of food you love could determine where you go, what you eat, and how your days are organized?**
+The project was created as a hackathon MVP, not as a production travel service.
+Its purpose is to demonstrate a compact multimodal workflow with explicit request boundaries and a reviewable result.
 
-With Gemini's multimodal understanding and search capabilities, we built Tripemini to transform personal food preferences into complete, automated travel itineraries.
+## Shipped MVP
 
-## What It Does
+The current application supports the following workflow:
 
-Tripemini is an AI-powered travel planning assistant that generates end-to-end itineraries based on user taste.
+- Upload one to four supported food images.
+- Infer a structured taste profile from those images.
+- Collect destination, starting location, date, trip length, pace, and budget style.
+- Generate an illustrative multi-day itinerary draft.
+- Display meals, attractions, short explanations, and approximate costs.
+- Surface request limits and retry guidance when the model endpoint is busy.
 
-### Users can:
-- Upload one or more food images they love
-- Select or discover a destination
-- Choose trip length, starting location, and approximate dates
-- Answer a small number of preference questions
+All generated places, addresses, prices, schedules, and travel estimates require independent verification.
+The application does not claim that a generated restaurant exists, is open, has availability, or matches the displayed price.
 
-### From this input, Tripemini automatically:
-- Infers cuisine, flavor profile, and dining preferences from food images
-- Recommends highly rated restaurants aligned with those preferences
-- Organizes meals and nearby attractions into optimized daily routes
-- Generates full day or multi-day itineraries with realistic timing and location awareness
+## Not currently implemented
 
-The result is a trip that feels personalized and intentional, rather than a generic list of recommendations.
+The shipped MVP does not include:
 
-## Demo Experience
+- Live restaurant or attraction search.
+- Google Search or Google Maps grounding.
+- Booking inventory or affiliate integrations.
+- Map rendering or route optimization.
+- Real-time opening hours, ratings, availability, or prices.
+- User accounts or saved itineraries.
+- Shareable itinerary links.
+- Stop replacement or day-level regeneration.
+- Group preference merging.
 
-Tripemini is presented as a web application designed for fast exploration and clear visualization.
+These are possible future directions, not current product claims.
 
-### The demo includes:
-- A gallery of example itineraries such as a 3-day Japan food-focused trip
-- An interactive planner where users can generate a custom itinerary in one click
-- A timeline and map-based view that shows meals, attractions, and routes together
+## Technical approach
 
-Each itinerary item includes an explanation of **why it was selected**, allowing users to understand and adjust the plan. Users can replace stops, regenerate a day, and share the itinerary as a link.
+The application uses a Next.js frontend and two server-side model routes.
+One route analyzes bounded image uploads into a taste-profile draft.
+The second route combines that draft with validated trip preferences to generate a structured itinerary draft.
 
-## How We Built It
+The public routes enforce request-size, image-count, field-validation, rate, and concurrency boundaries before starting model work.
+The current rate and concurrency state is process-local and is not a substitute for durable deployment-level abuse controls.
 
-Tripemini is built around **Gemini 3's multimodal reasoning and search tools**.
+## Design lessons
 
-| Component | Role |
-|-----------|------|
-| **Gemini Vision** | Analyzes uploaded food images to extract cuisine and taste signals |
-| **Gemini Search** | Tool calls retrieve relevant restaurants, places, and travel data |
-| **Gemini Reasoning** | Balances constraints such as distance, ratings, operating hours, and trip duration |
+Multimodal input can make preference collection feel more direct than a long questionnaire.
+Model output also requires strict product framing because a plausible itinerary is not the same as verified travel data.
+The most important engineering work is therefore at the trust boundary: bounded input, structured output, explicit failure behavior, and honest UI copy.
 
-The system composes results into structured, explainable itineraries. Rather than simple recommendations, Gemini is responsible for decision-making and planning.
+## Future work
 
-## Challenges We Ran Into
+Future development should prioritize evidence and reliability before adding more surface area.
 
-- Translating subjective food preferences into structured, searchable signals
-- Coordinating multiple real-world constraints like distance, time, and availability
-- Ensuring generated itineraries were coherent and realistic rather than simple lists
-
-Addressing these challenges required careful prompt design and structured tool calls.
-
-## Accomplishments We're Proud Of
-
-- A novel multimodal entry point for travel planning
-- Fully automated itinerary generation from minimal user input
-- A clear demonstration of Gemini's vision, search, and reasoning capabilities
-
-## What We Learned
-
-Multimodal inputs significantly improve personalization. Starting from images rather than text allows users to express intent more naturally.
-
-We also learned that combining search with reasoning is essential for real-world planning tasks.
-
-## What's Next for Tripemini
-
-- Support for dietary restrictions and budgets
-- Real-time itinerary re-planning during trips
-- Group preference merging
-- Deeper integration with maps and navigation
+1. Add a verified place-data provider with source attribution.
+2. Add durable rate limiting, cost monitoring, and abuse controls.
+3. Measure model latency, token usage, and structured-output success rates.
+4. Add maps and route planning only after reliable location data is available.
+5. Add accounts, persistence, and sharing only with clear privacy and authorization boundaries.
