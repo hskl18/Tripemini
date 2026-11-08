@@ -14,7 +14,11 @@ export const foodAnalysisSchema = z
 
 const itineraryItemSchema = z
   .object({
-    time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    // Gemini never sees the regex (pattern is stripped below), so the description carries the format.
+    time: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+      .describe("24-hour time as HH:MM, such as 09:00 or 19:30"),
     type: z.enum(["meal", "attraction", "transport", "hotel"]),
     title: z.string().trim().min(1).max(120),
     description: z.string().trim().min(1).max(500),
@@ -50,7 +54,9 @@ const modelBudgetSchema = z
 
 export const modelItinerarySchema = z
   .object({
-    days: z.array(modelDaySchema).min(1).max(14),
+    // No .max here: Gemini rejects the schema with 400 INVALID_ARGUMENT when both nested
+    // arrays declare maxItems. The route still requires exactly tripLength (1 to 14) days.
+    days: z.array(modelDaySchema).min(1),
     budgetBreakdown: modelBudgetSchema,
   })
   .strict();
