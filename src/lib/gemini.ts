@@ -1,4 +1,5 @@
-import { GoogleGenAI, type Part } from "@google/genai";
+import { ApiError, GoogleGenAI, type Part } from "@google/genai";
+import { ModelQuotaError } from "@/lib/api-guards";
 import {
   foodAnalysisJsonSchema,
   modelItineraryJsonSchema,
@@ -20,6 +21,12 @@ function getClient(): GoogleGenAI {
   return client;
 }
 
+export function toModelError(error: unknown): unknown {
+  return error instanceof ApiError && error.status === 429
+    ? new ModelQuotaError()
+    : error;
+}
+
 function requiredText(text: string | undefined): string {
   if (!text) throw new Error("Gemini returned no text content");
   return text;
@@ -38,6 +45,8 @@ export async function generateItineraryJson(prompt: string): Promise<string> {
       responseJsonSchema: modelItineraryJsonSchema,
       httpOptions: { timeout: MODEL_TIMEOUT_MS },
     },
+  }).catch((error) => {
+    throw toModelError(error);
   });
   return requiredText(response.text);
 }
@@ -64,6 +73,8 @@ export async function generateFoodAnalysisJson(
       responseJsonSchema: foodAnalysisJsonSchema,
       httpOptions: { timeout: MODEL_TIMEOUT_MS },
     },
+  }).catch((error) => {
+    throw toModelError(error);
   });
   return requiredText(response.text);
 }
