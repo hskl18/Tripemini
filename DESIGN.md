@@ -103,9 +103,22 @@ The hackathon result page had a "Share Itinerary" button with no click handler, 
 In November 2026, Dependabot raised an alert for `minimatch` 10.2.6 (GHSA-g3hv-75wg-m249), pulled in by `@typescript-eslint/typescript-estree`, and its automatic security update failed with `security_update_not_possible`, because the first fixed version, 11.0.1, is outside the `^10.2.2` range that package declares.
 typescript-estree only calls the CommonJS `minimatch()` export, which 11.x keeps, so [#8](https://github.com/hskl18/Tripemini/pull/8) forces that copy to 11.0.5 with a pnpm override and removes the audit exception that had covered it.
 
+### The itinerary step failed on every request
+
+On 2026-11-08 a full run in a headless browser failed at step 2, both locally and on the live demo, while the food step still worked.
+The 21 tests never call Gemini, so neither cause showed up in CI.
+
+- Gemini rejected the itinerary schema with `400 INVALID_ARGUMENT` whenever both nested arrays, the days and the items of each day, declared `maxItems`; removing either bound was enough.
+  The schema sent to Gemini no longer bounds the days, and the route still requires exactly the requested 1 to 14 days.
+- With the schema accepted, the model wrote times such as `09:00 AM`, and the `HH:MM` regex turned every itinerary into a `502`, because the regex is one of the keywords stripped from the schema Gemini sees.
+  The `time` field now carries a description of the format, which Gemini does see.
+
+After the fix, two of two live three-day runs returned schema-valid itineraries with 24-hour times.
+
 ## Not solved here
 
 - The gate is per process; on serverless hosting each instance has its own counters, so a determined client can exceed the nominal limits.
   A public deployment that matters needs a platform rate limit and a spend alert.
 - The routes log each model call's duration but nothing collects those logs, so there are no measured latency, token, or cost figures.
 - Nothing measures whether the inferred taste profile is accurate or whether generated places exist; the UI says so instead.
+- No test calls Gemini, so a provider-side schema rule or a change in the model's output format shows up only in a live run.
