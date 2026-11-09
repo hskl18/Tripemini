@@ -13,9 +13,11 @@ I built it for the [Gemini 3 Hackathon](https://gemini3.devpost.com/) in January
 It needs no sign-up and calls Gemini on the server, so each client is limited to ten model calls a minute.
 Its Gemini key is on the free tier, so Gemini can refuse calls once a quota runs out; both steps then say so instead of failing with a generic error.
 
-![Step 2 of the hackathon build: the taste profile Gemini inferred from three food photos, above the trip form](docs/media/hackathon-taste-profile.png)
+![Step 2: the taste profile Gemini inferred from four food photos, above the trip form filled in for Hong Kong](docs/media/trip-taste-profile.png)
 
-*Recorded for the hackathon submission in January 2026, before the July hardening; the current page no longer has the Gallery and About links.*
+![The generated Hong Kong draft: an illustrative, unverified draft banner, an estimated trip budget of $1402, and the first activity of Day 1](docs/media/trip-itinerary.png)
+
+*Local production build of `main` (`5923d36`) with a live Gemini response, 2026-11-09.*
 
 Run it locally with Node.js 22 or newer and pnpm 10:
 
