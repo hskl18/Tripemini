@@ -54,6 +54,7 @@ This lowers prompt-injection risk but does not remove it; the real limit on the 
 
 Both routes share one in-process gate: ten model calls per client per minute, four in flight per process, and at most 10,000 tracked clients, each refusal a `429` with `Retry-After`.
 The per-client count only increases when a call is admitted, so a client refused for concurrency does not also lose quota.
+Gemini's own limit is separate: the free-tier key allows 20 calls per model per day across all visitors, and a Gemini `429` becomes a `503` whose message says the quota resets at midnight Pacific time, so a visitor sees why the demo stopped instead of "Failed to generate itinerary".
 
 ### A deadline must not free the slot early
 
@@ -113,7 +114,7 @@ The 21 tests never call Gemini, so neither cause showed up in CI.
 - With the schema accepted, the model wrote times such as `09:00 AM`, and the `HH:MM` regex turned every itinerary into a `502`, because the regex is one of the keywords stripped from the schema Gemini sees.
   The `time` field now carries a description of the format, which Gemini does see.
 
-After the fix, two of two live three-day runs returned schema-valid itineraries with 24-hour times.
+After the fix, two of two live three-day runs returned schema-valid itineraries with 24-hour times, and the test `the itinerary schema sent to Gemini avoids nested maxItems and states the time format` pins both changes.
 
 ## Not solved here
 

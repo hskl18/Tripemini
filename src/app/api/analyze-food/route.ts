@@ -7,6 +7,7 @@ import {
   ALLOWED_IMAGE_TYPES,
   hasContentType,
   imageBytesMatchMimeType,
+  ModelQuotaError,
   ModelTimeoutError,
   PayloadTooLargeError,
   readBoundedRequestBody,
@@ -150,6 +151,9 @@ Do not identify people, infer sensitive traits, or include prose outside the sch
       }
       if (error instanceof ModelContractError) {
         return json({ error: "Model returned an invalid food analysis" }, 502);
+      }
+      if (error instanceof ModelQuotaError) {
+        return json({ error: error.message }, 503);
       }
       console.error("Food analysis error:", error);
       return json({ error: "Failed to analyze food images" }, 500);

@@ -4,6 +4,7 @@ import { generateItineraryJson } from "@/lib/gemini";
 import {
   MAX_ITINERARY_REQUEST_BYTES,
   hasContentType,
+  ModelQuotaError,
   ModelTimeoutError,
   PayloadTooLargeError,
   readBoundedRequestBody,
@@ -166,6 +167,9 @@ export function createGenerateItineraryHandler(
       }
       if (error instanceof ModelContractError) {
         return json({ error: "Model returned an invalid itinerary" }, 502);
+      }
+      if (error instanceof ModelQuotaError) {
+        return json({ error: error.message }, 503);
       }
       console.error("Itinerary generation error:", error);
       return json({ error: "Failed to generate itinerary" }, 500);

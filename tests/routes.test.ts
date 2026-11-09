@@ -9,7 +9,9 @@ import {
   createGenerateItineraryHandler,
   POST as generateItinerary,
 } from "../src/app/api/generate-itinerary/route";
-import { createModelRequestGate } from "../src/lib/api-guards";
+import { ApiError } from "@google/genai";
+import { createModelRequestGate, ModelQuotaError } from "../src/lib/api-guards";
+import { toModelError } from "../src/lib/gemini";
 import {
   foodAnalysisJsonSchema,
   modelItineraryJsonSchema,
@@ -97,6 +99,43 @@ test("Gemini schemas contain only supported JSON Schema keywords", () => {
   assert.equal(schemas.includes('"minLength"'), false);
   assert.equal(schemas.includes('"maxLength"'), false);
   assert.equal(schemas.includes('"pattern"'), false);
+});
+
+test("the itinerary schema sent to Gemini avoids nested maxItems and states the time format", () => {
+  // Gemini answered 400 INVALID_ARGUMENT when days and items both had maxItems,
+  // and wrote "09:00 AM" until the time field described its format (2026-11-08).
+  const days = (modelItineraryJsonSchema as {
+    properties: { days: { maxItems?: number; items: { properties: { items: { maxItems?: number; items: { properties: { time: { description?: string } } } } } } } };
+  }).properties.days;
+
+  assert.equal(days.maxItems === undefined || days.items.properties.items.maxItems === undefined, true);
+  assert.match(days.items.properties.items.items.properties.time.description ?? "", /HH:MM/);
+});
+
+test("a Gemini 429 becomes a quota error, and other provider errors pass through", () => {
+  const quota = new ApiError({ message: "quota", status: 429 });
+  const invalid = new ApiError({ message: "invalid", status: 400 });
+
+  assert.ok(toModelError(quota) instanceof ModelQuotaError);
+  assert.equal(toModelError(invalid), invalid);
+});
+
+test("model routes explain an exhausted Gemini quota with a 503", async () => {
+  const exhausted = async (): Promise<string> => {
+    throw new ModelQuotaError();
+  };
+  const food = createAnalyzeFoodHandler({ generate: exhausted });
+  const itinerary = createGenerateItineraryHandler({ generate: exhausted });
+
+  const responses = [
+    await food(validImageRequest("203.0.113.70")),
+    await itinerary(validItineraryRequest("203.0.113.71")),
+  ];
+
+  for (const response of responses) {
+    assert.equal(response.status, 503);
+    assert.match((await response.json()).error, /midnight Pacific time/);
+  }
 });
 
 function streamingNextRequest(

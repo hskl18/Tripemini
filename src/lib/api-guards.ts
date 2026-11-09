@@ -129,6 +129,16 @@ export class PayloadTooLargeError extends Error {
   }
 }
 
+// The demo's free-tier Gemini key allows 20 requests per model per day across all visitors.
+export class ModelQuotaError extends Error {
+  constructor() {
+    super(
+      "The demo has used its Gemini quota for now. Try again later; the daily quota resets at midnight Pacific time."
+    );
+    this.name = "ModelQuotaError";
+  }
+}
+
 export class ModelTimeoutError extends Error {
   constructor() {
     super("Model request timed out");

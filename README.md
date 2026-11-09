@@ -11,6 +11,7 @@ I built it for the [Gemini 3 Hackathon](https://gemini3.devpost.com/) in January
 
 **Live demo: [tripemini.vercel.app](https://tripemini.vercel.app).**
 It needs no sign-up and calls Gemini on the server, so each client is limited to ten model calls a minute.
+Its Gemini key is on the free tier, which allows 20 model calls a day across all visitors, about ten complete runs; after that both steps say so until the quota resets at midnight Pacific time.
 
 ![Step 2 of the hackathon build: the taste profile Gemini inferred from three food photos, above the trip form](docs/media/hackathon-taste-profile.png)
 
@@ -23,7 +24,7 @@ pnpm install --frozen-lockfile && pnpm dev
 ```
 
 The page and all input validation work without a key, but both model calls return `500` until you copy `.env.example` to `.env.local` and set `GOOGLE_GEMINI_API_KEY`.
-`pnpm test` runs 21 deterministic tests with no key and no network.
+`pnpm test` runs 24 deterministic tests with no key and no network.
 
 ## Non-goals
 
@@ -56,6 +57,7 @@ The hard parts are at the model boundary: untrusted input in, untrusted model ou
 - One client may start at most ten model calls per minute.
 - Rate-limit state tracks at most 10,000 clients per process.
 - Limit responses use `429` and include `Retry-After`.
+- An exhausted Gemini quota returns `503` with a message that says when it resets, instead of a generic failure.
 
 A multi-instance public deployment also needs durable platform-level rate limiting, spend alerts, and abuse monitoring.
 
