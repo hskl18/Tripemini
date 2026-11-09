@@ -54,7 +54,9 @@ This lowers prompt-injection risk but does not remove it; the real limit on the 
 
 Both routes share one in-process gate: ten model calls per client per minute, four in flight per process, and at most 10,000 tracked clients, each refusal a `429` with `Retry-After`.
 The per-client count only increases when a call is admitted, so a client refused for concurrency does not also lose quota.
-Gemini's own limit is separate: the free-tier key allows 20 calls per model per day across all visitors, and a Gemini `429` becomes a `503` whose message says the quota resets at midnight Pacific time, so a visitor sees why the demo stopped instead of "Failed to generate itinerary".
+Gemini's own quota is separate.
+The key is on the free tier, and its `429` on 2026-11-08 named a limit of 20 requests per model per day, yet the live demo kept answering after local calls with the same key were refused, so how that limit is counted is not known.
+A Gemini `429` becomes a `503` whose message says the daily quota resets at midnight Pacific time, so a visitor sees why the demo stopped instead of "Failed to generate itinerary".
 
 ### A deadline must not free the slot early
 
