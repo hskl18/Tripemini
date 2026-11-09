@@ -11,7 +11,7 @@ I built it for the [Gemini 3 Hackathon](https://gemini3.devpost.com/) in January
 
 **Live demo: [tripemini.vercel.app](https://tripemini.vercel.app).**
 It needs no sign-up and calls Gemini on the server, so each client is limited to ten model calls a minute.
-Its Gemini key is on the free tier, which allows 20 model calls a day across all visitors, about ten complete runs; after that both steps say so until the quota resets at midnight Pacific time.
+Its Gemini key is on the free tier, so Gemini can refuse calls once a quota runs out; both steps then say so instead of failing with a generic error.
 
 ![Step 2 of the hackathon build: the taste profile Gemini inferred from three food photos, above the trip form](docs/media/hackathon-taste-profile.png)
 
